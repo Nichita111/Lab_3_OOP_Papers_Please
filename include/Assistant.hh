@@ -16,9 +16,10 @@ private:
     vector<Task_1> assignedDisplays;
 
     bool compare(Task_1 a, Task_1 b) {
+        float eps = 0.00001;
         return a.getWidth() == b.getWidth() &&
             a.getHeight() == b.getHeight() &&
-                a.getPPI() == b.getPPI() &&
+                fabs(a.getPPI() - b.getPPI()) < eps &&
                 a.getModel() == b.getModel();
     }
 

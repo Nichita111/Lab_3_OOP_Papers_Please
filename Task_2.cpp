@@ -2,8 +2,8 @@
 #include <string>
 #include <fstream>
 #include <cctype>
-#include "TextData.hh"
-#include "FileReader.hh"
+#include "include/TextData.hh"
+#include "include/FileReader.hh"
 
 using namespace std;
 
@@ -11,7 +11,7 @@ using namespace std;
 int main(int argc, char* argv[]){
 
     if (argc < 3) {
-        cerr << "Usage: " << argv[0] << " <path-to-text-file>\n";
+        cerr << "Usage: " << argv[0] << " <name> <path-to-text-file>\n";
         return 1;
     }
     string name = argv[1];

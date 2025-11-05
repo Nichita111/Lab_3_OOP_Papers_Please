@@ -2,8 +2,8 @@
 #include <string>
 #include <vector>
 
-#include "Display.hpp"
-#include "Assistant.hh"
+#include "include/Display.hpp"
+#include "include/Assistant.hh"
 
 using namespace std;
 

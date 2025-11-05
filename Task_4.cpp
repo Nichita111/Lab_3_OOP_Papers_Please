@@ -2,8 +2,8 @@
 #include <string>
 #include <fstream>
 #include <vector>
-#include "TextData.hh"
-#include "FileReader.hh"
+#include "include/TextData.hh"
+#include "include/FileReader.hh"
 
 using namespace std;
 
