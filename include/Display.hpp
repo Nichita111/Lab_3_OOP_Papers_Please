@@ -5,7 +5,7 @@
 
 using namespace std;
 
-class Task_1{
+class Display{
 private:
     int width;
     int height;
@@ -14,7 +14,7 @@ private:
 
 public:
 
-    Task_1(int width, int height, float ppi, string model)
+    Display(int width, int height, float ppi, string model)
     {
         this->width = width;
         this->height = height;
@@ -54,7 +54,7 @@ public:
         return model;
     }
 
-    void compareSize(Task_1 m) const
+    void compareSize(Display m) const
     {
         auto size_of_a = width*height;
         auto size_of_b = m.width*m.height;
@@ -68,7 +68,7 @@ public:
         }
     }
 
-    void compareSharpness(Task_1 m) const
+    void compareSharpness(Display m) const
     {
         auto epsilon = 0.00001;
         auto sharpness_of_a = ppi;
@@ -83,7 +83,7 @@ public:
         }
     }
 
-    void  compareWithMonitor(Task_1 m) const {
+    void  compareWithMonitor(Display m) const {
         compareSize(m);
         compareSharpness(m);
     }
