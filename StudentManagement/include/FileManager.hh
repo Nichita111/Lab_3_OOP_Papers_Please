@@ -1,6 +1,5 @@
 #ifndef FILEMANAGER_HH
 #define FILEMANAGER_HH
-#include <iostream>
 #include <filesystem>
 #include <fstream>
 #include <unordered_map>
@@ -11,58 +10,27 @@
 
 using namespace std;
 
-// helpers
-inline vector<string> split(const string& s, char delim) {
-    vector<string> out; string cur; stringstream ss(s);
-    while (getline(ss, cur, delim)) out.push_back(cur);
-    if (!s.empty() && s.back()==delim) out.emplace_back(""); // keep trailing empty
-    return out;
-}
+// abstraction for storage
+class IUniversityStorage {
+public:
+    virtual ~IUniversityStorage() = default;
 
-inline string fieldToString(StudyField f) {
-    switch (f) {
-        case MECHANICAL_ENGINEERING:  return "MECHANICAL_ENGINEERING";
-        case SOFTWARE_ENGINEERING:    return "SOFTWARE_ENGINEERING";
-        case FOOD_TECHNOLOGY:         return "FOOD_TECHNOLOGY";
-        case URBANISM_ARCHITECTURE:   return "URBANISM_ARCHITECTURE";
-        case VETERINARY_MEDICINE:     return "VETERINARY_MEDICINE";
-    }
-    return "SOFTWARE_ENGINEERING";
-}
-inline StudyField fieldFromString(const string& s) {
-    if (s=="MECHANICAL_ENGINEERING")  return MECHANICAL_ENGINEERING;
-    if (s=="SOFTWARE_ENGINEERING")    return SOFTWARE_ENGINEERING;
-    if (s=="FOOD_TECHNOLOGY")         return FOOD_TECHNOLOGY;
-    if (s=="URBANISM_ARCHITECTURE")   return URBANISM_ARCHITECTURE;
-    return VETERINARY_MEDICINE;
-}
+    // Save the whole university somewhere (dir is e.g. "data")
+    virtual void save(const manageUniversity& uni,
+                      const std::string& dir) = 0;
 
-inline string studentToLine(const Student& st) {
-    const Date e = st.getEnrolmentDate();
-    const Date b = st.getDateOfBirth();
-    // first|last|email|eD|eM|eY|bD|bM|bY
-    ostringstream os;
-    os << st.getFirstName() << '|'
-        << st.getLastName()  << '|'
-        << st.getEmail()     << '|'
-        << e.day << '|' << e.month << '|' << e.year << '|'
-        << b.day << '|' << b.month << '|' << b.year;
-    return os.str();
-}
-inline Student studentFromParts(const vector<string>& p) {
-    // p: first last email eD eM eY bD bM bY
-    Date enrol{ stoi(p[3]), stoi(p[4]), stoi(p[5]) };
-    Date birth{ stoi(p[6]), stoi(p[7]), stoi(p[8]) };
-    return Student(p[0], p[1], p[2], enrol, birth);
-}
+    // Load a university with a given name from somewhere
+    virtual manageUniversity load(const std::string& dir,
+                                  const std::string& universityName) = 0;
+};
 
 // ---------- main API ----------
-class FileManager {
+class FileManager : public IUniversityStorage{
 public:
     // Saves to: data/faculties.txt and data/members.txt
     // faculties.txt:   name|abbr|field
     // members.txt:     abbr|E|<studentLine>  or  abbr|G|<studentLine>
-    static void save(const manageUniversity& uni, const string& dir = "data") {
+    void save(const manageUniversity& uni, const string& dir = "data") override {
         namespace fs = std::filesystem;
         fs::create_directories(dir);
 
@@ -93,8 +61,8 @@ public:
 
     // Rebuilds a manageUniversity from files.
     // If files are missing/empty, returns an empty university with the given name.
-    static manageUniversity load(const string& dir = "data",
-                                 const string& universityName = "TUM")
+    manageUniversity load(const string& dir = "data",
+                                 const string& universityName = "TUM") override
     {
         namespace fs = std::filesystem;
         vector<Faculty> result;

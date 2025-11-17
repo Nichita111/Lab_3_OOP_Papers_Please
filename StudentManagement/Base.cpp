@@ -1,33 +1,32 @@
 #include <iostream>
-#include <string>
-#include <vector>
-#include <algorithm>
-#include <sstream>
-#include <limits>
 #include <filesystem>
 #include "include/FileManager.hh"
 #include "include/Helpers.hh"
 
 using namespace std;
 
-int main(){
+int main() {
     using std::filesystem::exists;
+
+    // 1) Create a concrete storage object on the stack
+    FileManager fileManager;
+
+    // 2) Refer to it through the abstraction
+    IUniversityStorage& storage = fileManager;
 
     manageUniversity uni("TUM");
 
-    // 1) Try to load previous state
+    // 3) Load or seed initial data
     if (exists("data/faculties.txt") && exists("data/members.txt")) {
-        uni = FileManager::load("data", "TUM");
+        uni = storage.load("data", "TUM");
         cout << "[loaded previous state]\n";
     } else {
-        // 2) Seeding stays as a fallback 
-        // faculties
+        // seed some faculties and students
         uni.addFaculty("Faculty of Computers, Informatics and Microelectronics",
                        "FCIM", SOFTWARE_ENGINEERING);
         uni.addFaculty("Faculty of Mechanical Engineering",
                        "FIMIT", MECHANICAL_ENGINEERING);
 
-        // students
         Date en1{1, 9, 2024};  Date b1{15, 6, 2005};
         Student s1("Robert", "Robertson", "robert.robertson@isa.utm.md", en1, b1);
         uni.addStudentToFaculty("FCIM", s1);
@@ -37,8 +36,8 @@ int main(){
         uni.addStudentToFaculty("FIMIT", s2);
     }
 
-    // 3) Menu loops
-    while (true){
+    // 4) Menu loop
+    while (true) {
         cout << "\nWelcome to TUM's student management system!\n";
         cout << "What do you want to do?\n";
         cout << "General operations - g\n";
@@ -56,8 +55,8 @@ int main(){
         else cout << "Unknown option\n";
     }
 
-    // 4) Save on exit
-    FileManager::save(uni, "data");
+    // 5) Save on exit
+    storage.save(uni, "data");
     cout << "Goodbye!\n";
     return 0;
 }

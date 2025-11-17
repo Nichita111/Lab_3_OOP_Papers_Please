@@ -11,17 +11,9 @@
 #include <sstream>
 #include <limits>
 #include "University.hh"
+#include "Utils.hh"
 
 using namespace std;
-
-StudyField parseField(const string& fieldStr){
-    if (fieldStr == "MECHANICAL_ENGINEERING") return MECHANICAL_ENGINEERING;
-    if (fieldStr == "SOFTWARE_ENGINEERING")   return SOFTWARE_ENGINEERING;
-    if (fieldStr == "FOOD_TECHNOLOGY")        return FOOD_TECHNOLOGY;
-    if (fieldStr == "URBANISM_ARCHITECTURE")  return URBANISM_ARCHITECTURE;
-    if (fieldStr == "VETERINARY_MEDICINE")    return VETERINARY_MEDICINE;
-    throw invalid_argument("Unknown field: " + fieldStr);
-}
 
 void generalOperationsLoop(manageUniversity& uni){
     while (true){
@@ -37,12 +29,18 @@ void generalOperationsLoop(manageUniversity& uni){
 
         string line;
         if (!getline(cin, line)) return;
-        if (line == "b") break;
-        if (line == "q") exit(0);
+        if (line == "b") break; //BACK
+        if (line == "q") exit(0); //QUIT
 
+        // DISPLAY FACULTY
         if (line == "df"){
-            uni.displayFaculties();
+            vector<Faculty> faculties = uni.getFaculties();
+            cout << "Faculties:\n";
+            for (const auto& f : faculties)
+                cout << " - " << f.getName()
+                     << " (" << f.getAbbreviation() << ")" << endl;
 
+            // NEW FACULTY
         } else if (line.rfind("nf/", 0) == 0){
             auto parts = split(line, '/');      // nf/name/abbr/field
             if (parts.size() != 4){
@@ -51,7 +49,10 @@ void generalOperationsLoop(manageUniversity& uni){
             }
             StudyField field = parseField(parts[3]);
             uni.addFaculty(parts[1], parts[2], field);
+            cout << "Succesfully added new faculty " << parts[1]
+             << " (" << parts[2] << ")" << endl;
 
+            // DISPLAY FACULTY WITH A FILED
         } else if (line.rfind("df/", 0) == 0){
             auto parts = split(line, '/');      // df/field
             if (parts.size() != 2){
@@ -59,8 +60,14 @@ void generalOperationsLoop(manageUniversity& uni){
                 continue;
             }
             StudyField field = parseField(parts[1]);
-            uni.displayFacultiesWithField(field);
+            vector<Faculty> faculties = uni.getFaculties();
+            cout << "Faculties with field " << field << ":\n";
+            for (const auto& f : faculties)
+                if (f.getStudyField() == field)
+                    cout << " - " << f.getName()
+                         << " (" << f.getAbbreviation() << ")" << endl;
 
+            // SEARCH STUDENT
         } else if (line.rfind("ss/", 0) == 0){
             auto parts = split(line, '/');      // ss/email
             if (parts.size() != 2){
@@ -96,9 +103,10 @@ void facultyOperationsLoop(manageUniversity& uni){
 
         string line;
         if (!getline(cin, line)) return;
-        if (line == "b") break;
-        if (line == "q") exit(0);
+        if (line == "b") break; //BACK
+        if (line == "q") exit(0); //QUIT
 
+        // NEW STUDENT
         if (line.rfind("ns/", 0) == 0){
             auto parts = split(line, '/');
             // ns/abbr/fname/lname/email/day/month/year
@@ -117,39 +125,87 @@ void facultyOperationsLoop(manageUniversity& uni){
             Date enrol{1, 9, 2025};
             Date birth{day, month, year};
             Student s(firstName, lastName, email, enrol, birth);
-            uni.addStudentToFaculty(abbr, s);
+            bool added_user = uni.addStudentToFaculty(abbr, s);
+            if (added_user)
+                cout << "Added student " << s.getFirstName() << " "
+                 << s.getLastName() << " to " << abbr << endl;
+            else
+                cout << "Faculty with abbreviation " << abbr << " not found\n";
 
+
+            // GRADUATE STUDENT
         } else if (line.rfind("gs/", 0) == 0){
             auto parts = split(line, '/');
             if (parts.size() != 2){
                 cout << "Invalid gs command format\n";
                 continue;
             }
-            uni.graduateStudentByEmail(parts[1]);
+            string graduated = uni.graduateStudentByEmail(parts[1]);
+            if (graduated != "")
+                cout << "Succesfully graduted from "<< graduated << "\n";
+            else
+                cout << "Student not found in any faculty\n";
 
+            //DISPLAY STUDENT
         } else if (line.rfind("ds/", 0) == 0){
             auto parts = split(line, '/');
             if (parts.size() != 2){
                 cout << "Invalid ds command format\n";
                 continue;
             }
-            uni.displayStudents(parts[1]);
+            auto abbr = parts[1];
+            vector<Student> students = uni.displayStudents(abbr);
+            if (students.empty()) {
+                cout << "No enrolled students in " << abbr << endl;
+            }
 
+            for (const auto& s : students) {
+                cout << "Student first name: " << s.getFirstName() << "\n"
+                     << "Student last name: " << s.getLastName() << "\n"
+                     << "Student email: " << s.getEmail() << "\n"
+                     << "Student enrolment date: " << transformDate(s.getEnrolmentDate()) << "\n"
+                     << "Student date of birth: " << transformDate(s.getDateOfBirth()) << "\n\n";
+            }
+
+
+            // DISPLAY GRADUATE
         } else if (line.rfind("dg/", 0) == 0){
             auto parts = split(line, '/');
             if (parts.size() != 2){
                 cout << "Invalid dg command format\n";
                 continue;
             }
-            uni.displayGraduates(parts[1]);
 
+            auto abbr = parts[1];
+
+            vector<Student> graduates = uni.displayGraduates(abbr);
+            if (graduates.empty()) {
+                cout << "No graduates in " << abbr << endl;
+            }
+
+            for (const auto& s : graduates) {
+                cout << "Graduate first name: " << s.getFirstName() << "\n"
+                     << "Graduate last name: " << s.getLastName() << "\n"
+                     << "Graduate email: " << s.getEmail() << "\n"
+                     << "Graduate enrolment date: " << transformDate(s.getEnrolmentDate()) << "\n"
+                     << "Graduate date of birth: " << transformDate(s.getDateOfBirth()) << "\n\n";
+            }
+
+
+            // BELONG TO FACULTY
         } else if (line.rfind("bf/", 0) == 0){
             auto parts = split(line, '/');
             if (parts.size() != 3){
                 cout << "Invalid bf command format\n";
                 continue;
             }
-            uni.checkBelongsToFaculty(parts[1], parts[2]);
+            bool belong = uni.checkBelongsToFaculty(parts[1], parts[2]);
+            if (belong)
+                cout << "Student " << parts[2]
+                 << " belongs to faculty " << parts[1] << endl;
+            else
+                cout << "Student " << parts[2]
+                 << " does NOT belong to faculty " << parts[1] << endl;
 
         } else {
             cout << "Unknown command in Faculty operations\n";

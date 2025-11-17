@@ -6,10 +6,10 @@
 #include <algorithm>
 #include <sstream>
 #include <limits>
+#include "Utils.hh"
 #include "Faculty.hh"
 
 using namespace std;
-
 
 class manageUniversity{
 private:
@@ -33,8 +33,6 @@ public:
 
     void addFaculty(const string& n, const string& a, StudyField field){
         faculties.emplace_back(n, a, field);
-        cout << "Succesfully added new faculty " << n
-             << " (" << a << ")" << endl;
     }
 
     string findStudentByEmail(const string& email){
@@ -44,71 +42,42 @@ public:
         return "Not found";
     }
 
-    void displayFaculties() const{
-        cout << "Faculties:\n";
-        for (const auto& f : faculties)
-            cout << " - " << f.getName()
-                 << " (" << f.getAbbreviation() << ")" << endl;
-    }
 
-    void displayFacultiesWithField(StudyField studyField) const{
-        cout << "Faculties with field " << studyField << ":\n";
-        for (const auto& f : faculties)
-            if (f.getStudyField() == studyField)
-                cout << " - " << f.getName()
-                     << " (" << f.getAbbreviation() << ")" << endl;
-    }
-
-    void addStudentToFaculty(const string& facultyAbbr, const Student& student){
+    bool addStudentToFaculty(const string& facultyAbbr, const Student& student){
         Faculty* f = findFacultyByAbbreviation(facultyAbbr);
         if (!f){
-            cout << "Faculty with abbreviation " << facultyAbbr << " not found\n";
-            return;
+            return false;
         }
         f->addStudent(student);
+        return true;
     }
 
-    void graduateStudentByEmail(const string& email){
+    string graduateStudentByEmail(const string& email){
         for (auto& f : faculties){
             if (f.belongTo(email)){
                 f.graduateByEmail(email);
-                cout << "Succesfully graduted\n";
-                return;
+                return f.getAbbreviation();
             }
         }
-        cout << "Student with email " << email << " not found in any faculty\n";
+        return "";
     }
 
-    void displayStudents(const string& facultyAbbr){
+    vector<Student> displayStudents(const string& facultyAbbr){
         Faculty* f = findFacultyByAbbreviation(facultyAbbr);
-        if (!f){
-            cout << "Faculty with abbreviation " << facultyAbbr << " not found\n";
-            return;
-        }
-        f->displayStudents();
+        return f->getStudents();
     }
 
-    void displayGraduates(const string& facultyAbbr){
+    vector<Student> displayGraduates(const string& facultyAbbr){
         Faculty* f = findFacultyByAbbreviation(facultyAbbr);
-        if (!f){
-            cout << "Faculty with abbreviation " << facultyAbbr << " not found\n";
-            return;
-        }
-        f->displayGraduates();
+        return f->getGraduates();
     }
 
-    void checkBelongsToFaculty(const string& facultyAbbr, const string& email){
+    bool checkBelongsToFaculty(const string& facultyAbbr, const string& email){
         Faculty* f = findFacultyByAbbreviation(facultyAbbr);
-        if (!f){
-            cout << "Faculty with abbreviation " << facultyAbbr << " not found\n";
-            return;
-        }
         if (f->belongTo(email))
-            cout << "Student " << email
-                 << " belongs to faculty " << f->getName() << endl;
+            return true;
         else
-            cout << "Student " << email
-                 << " does NOT belong to faculty " << f->getName() << endl;
+            return false;
     }
 };
 
