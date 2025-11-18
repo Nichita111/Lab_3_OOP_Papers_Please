@@ -42,6 +42,13 @@
             "physicalTraits": null
         },
         {
+            "age": null,
+            "id": 26,
+            "isHumanoid": null,
+            "originPlanet": "KASHYYYK",
+            "physicalTraits": null
+        },
+        {
             "age": 33,
             "id": 31,
             "isHumanoid": false,
@@ -160,6 +167,13 @@
             "physicalTraits": [
                 "HAIRY"
             ]
+        },
+        {
+            "age": 58,
+            "id": 88,
+            "isHumanoid": null,
+            "originPlanet": "ENDOR",
+            "physicalTraits": null
         },
         {
             "age": 17,
@@ -297,11 +311,13 @@
             "physicalTraits": null
         },
         {
-            "age": null,
-            "id": 168,
+            "age": 188,
+            "id": 162,
             "isHumanoid": false,
             "originPlanet": null,
-            "physicalTraits": null
+            "physicalTraits": [
+                "TALL"
+            ]
         },
         {
             "age": 17,

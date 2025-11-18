@@ -1,6 +1,20 @@
 {
     "individuals": [
         {
+            "age": 144,
+            "id": 6,
+            "isHumanoid": null,
+            "originPlanet": "VOGSPHERE",
+            "physicalTraits": null
+        },
+        {
+            "age": 51,
+            "id": 7,
+            "isHumanoid": null,
+            "originPlanet": "BETELGEUSE",
+            "physicalTraits": null
+        },
+        {
             "age": 74,
             "id": 9,
             "isHumanoid": true,
@@ -168,6 +182,13 @@
             "physicalTraits": null
         },
         {
+            "age": 25,
+            "id": 69,
+            "isHumanoid": null,
+            "originPlanet": "VOGSPHERE",
+            "physicalTraits": null
+        },
+        {
             "age": 4,
             "id": 73,
             "isHumanoid": null,
@@ -205,6 +226,20 @@
                 "BULKY",
                 "GREEN"
             ]
+        },
+        {
+            "age": 131,
+            "id": 91,
+            "isHumanoid": null,
+            "originPlanet": "VOGSPHERE",
+            "physicalTraits": null
+        },
+        {
+            "age": 54,
+            "id": 98,
+            "isHumanoid": null,
+            "originPlanet": "VOGSPHERE",
+            "physicalTraits": null
         },
         {
             "age": 64,
@@ -435,10 +470,24 @@
             ]
         },
         {
+            "age": 20,
+            "id": 172,
+            "isHumanoid": null,
+            "originPlanet": "BETELGEUSE",
+            "physicalTraits": null
+        },
+        {
             "age": 200,
             "id": 174,
             "isHumanoid": false,
             "originPlanet": "VOGSPHERE",
+            "physicalTraits": null
+        },
+        {
+            "age": null,
+            "id": 178,
+            "isHumanoid": null,
+            "originPlanet": "BETELGEUSE",
             "physicalTraits": null
         },
         {
@@ -455,6 +504,13 @@
             "id": 188,
             "isHumanoid": false,
             "originPlanet": "VOGSPHERE",
+            "physicalTraits": null
+        },
+        {
+            "age": 43,
+            "id": 196,
+            "isHumanoid": null,
+            "originPlanet": "BETELGEUSE",
             "physicalTraits": null
         },
         {

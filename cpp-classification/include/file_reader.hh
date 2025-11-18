@@ -6,16 +6,18 @@
 #include <sstream>
 
 using json = nlohmann::json;
+using namespace std;
+
 
 class FileReader {
 public:
-    explicit FileReader(const std::string& path) : path_(path) {}
+    explicit FileReader(const string& path) : path_(path) {}
 
     // Read the file contents into memory
     bool read() {
-        std::ifstream in(path_);
+        ifstream in(path_);
         if (!in) return false;
-        std::ostringstream ss;
+        ostringstream ss;
         ss << in.rdbuf();
         contents_ = ss.str();
         return true;
@@ -37,8 +39,8 @@ public:
     const json& getJson() const { return j_; }
 
 private:
-    std::string path_;
-    std::string contents_;
+    string path_;
+    string contents_;
     json j_;
     bool parsed_ = false;
 };
