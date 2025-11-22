@@ -36,10 +36,17 @@ protected:
 
     // each derived class defines its specific steps
     virtual void makeSpecific() const = 0;
+    
+    void printDetails() const {
+        cout << "\nPreparing " << name << '\n'
+             << "Setting intensity to " << intensityToString(coffeeIntensity) << endl;
+    }
 
-    void header() const {
-        cout << "\nMaking " << name << '\n'
-             << "Intensity set " << intensityToString(coffeeIntensity) << endl;
+    // Template method for making any coffee
+    virtual void makeCoffee() const {
+        printDetails();
+        makeSpecific();
+        cout << "Coffee ready!" << endl;
     }
 
     friend class Barista; // Barista can use protected members
@@ -50,13 +57,19 @@ public:
 };
 
 class Americano : public Coffee {
+protected:
     int mlOfWater;
 
     Americano(Intensity i, int w, string n = "Americano")
         : Coffee(i, std::move(n)), mlOfWater(w) {
         if (w < 0)
             throw invalid_argument("mlOfWater must be positive");
-        }
+    }
+
+    const Americano& makeAmericano() const {
+        Coffee::makeCoffee();
+        return *this;
+    }
 
     void makeSpecific() const override {
         cout << "Adding " << mlOfWater << " ml water" << endl;
@@ -76,6 +89,11 @@ protected:
             }
         }
 
+    const Cappuccino& makeCappuccino() const {
+        Coffee::makeCoffee();
+        return *this;
+    }
+
     void makeSpecific() const override {
         cout << "Adding " << mlOfMilk << " ml milk" << endl;
     }
@@ -84,10 +102,16 @@ protected:
 };
 
 class SyrupCappuccino : public Cappuccino {
+protected:
     SyrupType syrup;
 
     SyrupCappuccino(Intensity i, int m, SyrupType s)
         : Cappuccino(i, m, "Syrup Cappuccino"), syrup(s) {}
+
+    const SyrupCappuccino& makeSyrupCappuccino() const {
+        Coffee::makeCoffee();
+        return *this;
+    }
 
     void makeSpecific() const override {
         Cappuccino::makeSpecific();
@@ -98,14 +122,20 @@ class SyrupCappuccino : public Cappuccino {
 };
 
 class PumpkinSpiceLatte : public Cappuccino {
+protected:
     int mgPumpkinSpice;
 
     PumpkinSpiceLatte(Intensity i, int m, int mg)
         : Cappuccino(i, m, "Pumpkin Spice Latte"), mgPumpkinSpice(mg) {
-            if (mg < 0){
-                throw invalid_argument("mgOfPumpkinSpice must be positive");
-            }
+        if (mg < 0){
+            throw invalid_argument("mgOfPumpkinSpice must be positive");
         }
+    }
+
+    const PumpkinSpiceLatte& makePumpkinSpiceLatte() const {
+        Coffee::makeCoffee();
+        return *this;
+    }
 
     void makeSpecific() const override {
         Cappuccino::makeSpecific();
@@ -145,9 +175,22 @@ public:
     void process() {
         for (const auto &o : orders) {
             auto coffee = create(o);
-            coffee->header();
-            coffee->makeSpecific();
+            switch (o.type) {
+                case CoffeeType::AMERICANO:
+                    static_cast<Americano*>(coffee.get())->makeAmericano();
+                    break;
+                case CoffeeType::CAPPUCCINO:
+                    static_cast<Cappuccino*>(coffee.get())->makeCappuccino();
+                    break;
+                case CoffeeType::SYRUP_CAPPUCCINO:
+                    static_cast<SyrupCappuccino*>(coffee.get())->makeSyrupCappuccino();
+                    break;
+                case CoffeeType::PUMPKIN_SPICE_LATTE:
+                    static_cast<PumpkinSpiceLatte*>(coffee.get())->makePumpkinSpiceLatte();
+                    break;
+            }
         }
+        cout << "\nAll orders completed!" << endl;
     }
 };
 
