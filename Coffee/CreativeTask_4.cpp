@@ -22,6 +22,10 @@ struct Order { // simple data passed from main
     int mlOfMilk = 0;         // Cappuccino variants
     SyrupType syrup = VANILLA;// Syrup Cappuccino
     int mgPumpkinSpice = 0;   // Pumpkin Spice Latte
+    // Extras
+    int sugarTeaspoons = 0;   // how many teaspoons of sugar
+    std::string temperature = "hot"; // hot / warm / cold
+    bool extraShot = false;   // add extra espresso shot
 };
 
 class Barista; // forward declaration
@@ -30,6 +34,10 @@ class Coffee {
 protected:
     Intensity coffeeIntensity;
     string name;
+    // Extras that the Barista may set
+    int sugarTeaspoons = 0;
+    string temperature = "hot";
+    bool extraShot = false;
 
     Coffee(Intensity i, string n)
         : coffeeIntensity(i), name(std::move(n)) {}
@@ -40,6 +48,9 @@ protected:
     void printDetails() const {
         cout << "\nPreparing " << name << '\n'
              << "Setting intensity to " << intensityToString(coffeeIntensity) << endl;
+        if (extraShot) cout << "Adding an extra espresso shot" << endl;
+        if (sugarTeaspoons > 0) cout << "Sugar: " << sugarTeaspoons << " tsp" << endl;
+        if (!temperature.empty()) cout << "Temperature: " << temperature << endl;
     }
 
     // Template method for making any coffee
@@ -151,26 +162,89 @@ private:
     vector<Order> orders;
 
     unique_ptr<Coffee> create(const Order &o) const {
+        unique_ptr<Coffee> ptr;
         switch (o.type) {
             case CoffeeType::AMERICANO:
                 // Barista is a friend, so it can call private ctor
-                return unique_ptr<Coffee>(new Americano(o.intensity, o.mlOfWater));
+                ptr = unique_ptr<Coffee>(new Americano(o.intensity, o.mlOfWater));
+                break;
 
             case CoffeeType::CAPPUCCINO:
-                return unique_ptr<Coffee>(new Cappuccino(o.intensity, o.mlOfMilk));
+                ptr = unique_ptr<Coffee>(new Cappuccino(o.intensity, o.mlOfMilk));
+                break;
 
             case CoffeeType::SYRUP_CAPPUCCINO:
-                return unique_ptr<Coffee>(new SyrupCappuccino(o.intensity, o.mlOfMilk, o.syrup));
+                ptr = unique_ptr<Coffee>(new SyrupCappuccino(o.intensity, o.mlOfMilk, o.syrup));
+                break;
 
             case CoffeeType::PUMPKIN_SPICE_LATTE:
-                return unique_ptr<Coffee>(new PumpkinSpiceLatte(o.intensity, o.mlOfMilk, o.mgPumpkinSpice));
+                ptr = unique_ptr<Coffee>(new PumpkinSpiceLatte(o.intensity, o.mlOfMilk, o.mgPumpkinSpice));
+                break;
+            default:
+                throw runtime_error("Unknown coffee type");
         }
-        throw runtime_error("Unknown coffee type");
+        // copy creative extras from order into the Coffee object (Barista is friend)
+        ptr->sugarTeaspoons = o.sugarTeaspoons;
+        ptr->temperature = o.temperature;
+        ptr->extraShot = o.extraShot;
+        return ptr;
     }
 
 public:
     Barista(string name, vector<Order> orders)
         : name(std::move(name)), orders(std::move(orders)) {}
+
+    // Ask the user interactively for orders and populate `orders`.
+    void askOrdersFromConsole() {
+        cout << "How many orders would you like to place? ";
+        int n = 0;
+        if (!(cin >> n) || n <= 0) {
+            cout << "Invalid number, using 0 orders." << endl;
+            cin.clear();
+            string dummy; getline(cin, dummy);
+            return;
+        }
+        orders.clear();
+        for (int i = 0; i < n; ++i) {
+            cout << "\nOrder #" << (i+1) << "\n";
+            cout << "Choose coffee (1=Americano,2=Cappuccino,3=Syrup Cappuccino,4=Pumpkin Spice Latte): ";
+            int t=0; cin >> t; CoffeeType type = CoffeeType::AMERICANO;
+            switch (t) {
+                case 1: type = CoffeeType::AMERICANO; break;
+                case 2: type = CoffeeType::CAPPUCCINO; break;
+                case 3: type = CoffeeType::SYRUP_CAPPUCCINO; break;
+                case 4: type = CoffeeType::PUMPKIN_SPICE_LATTE; break;
+                default: cout << "Unknown choice, defaulting to Americano." << endl; break;
+            }
+
+            cout << "Intensity (Light/Normal/Strong): ";
+            string intensityStr; cin >> intensityStr; Intensity intensity = NORMAL;
+            try { intensity = stringToIntensity(intensityStr); } catch (...) { cout << "Invalid intensity, using Normal." << endl; }
+
+            Order o; o.type = type; o.intensity = intensity;
+
+            if (type == CoffeeType::AMERICANO) {
+                cout << "ml of water (e.g. 150): "; cin >> o.mlOfWater;
+            } else {
+                cout << "ml of milk (e.g. 120): "; cin >> o.mlOfMilk;
+            }
+
+            if (type == CoffeeType::SYRUP_CAPPUCCINO) {
+                cout << "Syrup (Macadamia/Vanilla/Coconut/Caramel/Chocolate/Popcorn): ";
+                string s; cin >> s; try { o.syrup = stringToSyrupType(s); } catch (...) { cout << "Unknown syrup, using Vanilla." << endl; o.syrup = VANILLA; }
+            }
+
+            if (type == CoffeeType::PUMPKIN_SPICE_LATTE) {
+                cout << "mg of pumpkin spice (e.g. 50): "; cin >> o.mgPumpkinSpice;
+            }
+
+            cout << "Sugar (teaspoons, 0 for none): "; cin >> o.sugarTeaspoons;
+            cout << "Temperature (hot/warm/cold): "; cin >> o.temperature;
+            cout << "Extra shot? (0=no,1=yes): "; int es = 0; cin >> es; o.extraShot = (es != 0);
+
+            orders.push_back(o);
+        }
+    }
 
     void process() {
         for (const auto &o : orders) {
@@ -196,15 +270,25 @@ public:
 
 int main() {
 
-    vector<Order> orders = {
-        {CoffeeType::AMERICANO,           NORMAL, 150},
-        {CoffeeType::CAPPUCCINO,          STRONG, 0, 100},
-        {CoffeeType::SYRUP_CAPPUCCINO,    LIGHT,  0, 120, VANILLA},
-        {CoffeeType::PUMPKIN_SPICE_LATTE, NORMAL, 0, 130, VANILLA, 50}
-    };
+    cout << "Do you want interactive ordering? (y/n): ";
+    char choice = 'n';
+    if (!(cin >> choice)) choice = 'n';
 
-    Barista b("John", orders);
-    b.process();
+    if (choice == 'y' || choice == 'Y') {
+        Barista b("John", {});
+        b.askOrdersFromConsole();
+        b.process();
+    } else {
+        vector<Order> orders = {
+            {CoffeeType::AMERICANO,           NORMAL, 150},
+            {CoffeeType::CAPPUCCINO,          STRONG, 0, 100},
+            {CoffeeType::SYRUP_CAPPUCCINO,    LIGHT,  0, 120, VANILLA},
+            {CoffeeType::PUMPKIN_SPICE_LATTE, NORMAL, 0, 130, VANILLA, 50}
+        };
+
+        Barista b("John", orders);
+        b.process();
+    }
 
     return 0;
 }
