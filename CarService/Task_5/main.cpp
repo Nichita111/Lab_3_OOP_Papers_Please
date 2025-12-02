@@ -3,9 +3,12 @@
 #include <chrono>
 #include <cstdlib>
 #include <filesystem>
+#include <fstream>
 #include "Scheduler.hpp"
 #include "../Task_4/Semaphore.hpp"
 #include "../Task_2/Services.hpp"
+
+#include <nlohmann/json.hpp>
 
 using namespace std;
 namespace fs = std::filesystem;
@@ -14,11 +17,12 @@ void runGenerator(const fs::path& binDir) {
     fs::path genPath = binDir / "generator.exe";
 
     if (fs::exists(genPath)) {
-        cout << "Launching Generator" << endl;
+        cout << "[System] Launching Generator..." << endl;
         string cmd = "\"" + genPath.string() + "\"";
+        cout << "[System] Command: " << cmd << endl;
         std::system(cmd.c_str()); //Launches generator.exe
     } else {
-        cerr << "Error: Could not find generator executable at " << genPath << endl;
+        cerr << "[System] Error: Could not find generator executable at " << genPath << endl;
     }
 }
 
@@ -71,6 +75,36 @@ int main(int argc, char** argv) {
     cout << "Gas Cars Served:      " << semaphore.getGas() << endl;
     cout << "People Served:        " << semaphore.getPeople() << endl;
     cout << "Robots Served:        " << semaphore.getRobots() << endl;
+
+    // Verify against finish.json
+    try {
+        fs::path finishPath = fs::absolute("queue/finish.json");
+        std::ifstream in(finishPath);
+        if (!in) {
+            std::cerr << "[Verify] Could not open finish.json at " << finishPath << std::endl;
+        } else {
+            nlohmann::json j; in >> j;
+            int expectElectric = j.value("ELECTRIC", 0);
+            int expectGas      = j.value("GAS", 0);
+            int expectPeople   = j.value("PEOPLE", 0);
+            int expectRobots   = j.value("ROBOTS", 0);
+
+            assert(semaphore.getElectric() == expectElectric);
+            cout << "[Verify] Expected ELECTRIC: " << expectElectric << ", Got: " << semaphore.getElectric() << std::endl;
+
+            assert(semaphore.getGas() == expectGas);
+            cout << "[Verify] Expected GAS: " << expectGas << ", Got: " << semaphore.getGas() << std::endl;
+
+            assert(semaphore.getPeople() == expectPeople);
+            cout << "[Verify] Expected PEOPLE: " << expectPeople << ", Got: " << semaphore.getPeople() << std::endl;
+            
+            assert(semaphore.getRobots() == expectRobots);
+            cout << "[Verify] Expected ROBOTS: " << expectRobots << ", Got: " << semaphore.getRobots() << std::endl;
+
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "[Verify] Error reading/verifying finish.json: " << e.what() << std::endl;
+    }
 
     return 0;
 }
